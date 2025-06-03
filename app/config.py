@@ -5,10 +5,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 class Settings(BaseSettings):
     """Global configuration loaded from environment variables."""
     redis_url: str = Field("redis://localhost:6379")
-    api_key: str = Field(...)
+    api_key: str = Field("123456")
 
     model_config = SettingsConfigDict(
         env_file        = BASE_DIR / ".env",
@@ -18,4 +19,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
