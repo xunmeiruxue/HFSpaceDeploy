@@ -57,11 +57,23 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
         if not Path(tmp, "Dockerfile").exists():
             raise DockerfileMissingError()
 
-        readme = Path(tmp, "README.md")
-        header = textwrap.dedent(
-            f"""---\ntitle: \"{space_name}\"\nemoji: \"🚀\"\ncolorFrom: blue\ncolorTo: green\nsdk: docker\napp_port: {space_port}\n---\n"""
+        readme = Path(".", "README.md")
+        header = (
+            f"---\n"
+            f"title: \"{space_name}\"\n"
+            f"emoji: \"🚀\"\n"
+            f"colorFrom: blue\n"
+            f"colorTo: green\n"
+            f"sdk: docker\n"
+            f"app_port: {space_port}\n"
+            f"---\n"
         )
-        readme.write_text(f"{header}\n{description}\n", encoding="utf-8")
+        badge = (
+            f"### 🚀 一键部署\n"
+            f"[![Deploy with HFSpaceDeploy](https://img.shields.io/badge/Deploy_with-HFSpaceDeploy-green?style=social&logo=rocket)](https://github.com/kfcx/HFSpaceDeploy)\n\n"
+            f"本项目由[HFSpaceDeploy](https://github.com/kfcx/HFSpaceDeploy)一键部署\n"
+        )
+        readme.write_text(f"{header}\n{badge}\n{description}\n", encoding="utf-8")
         api.upload_folder(folder_path=tmp, repo_id=repo_id, repo_type="space", ignore_patterns=[".git"])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
