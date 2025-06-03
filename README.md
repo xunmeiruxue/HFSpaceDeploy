@@ -143,9 +143,18 @@ CMD ["python", "app.py"]
 ## 💡 常见问题
 
 <details>
-<summary><b>Q: Token 需要什么权限？</b></summary>
+<summary><b>Q: 怎么获取 HuggingFace Token ？</b></summary>
+					
+A: 如下图点击`获取令牌` -> `Create new token` -> 如图2`复制token`   
+![img](images/img0.png)
+![img.png](images/img2.png)
+</details>
 
-A: 需要在 HuggingFace Settings 创建具有 **write** 权限的 token。
+<details>
+<summary><b>Q: HuggingFace Token 需要什么权限？</b></summary>
+
+A: 需要在 HuggingFace Settings 创建具有 **write** 权限的 token，参考如下图。
+![img](images/img1.png)
 </details>
 
 <details>
