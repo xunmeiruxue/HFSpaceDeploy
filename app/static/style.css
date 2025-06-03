@@ -1,28 +1,80 @@
 /* Custom styles for HuggingFace Space Deployer */
 
-/* Loading animations */
-.pulse-glow {
-    animation: pulse-glow 2s infinite;
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-@keyframes pulse-glow {
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
     0%, 100% {
         opacity: 1;
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
     }
     50% {
-        opacity: 0.8;
-        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        opacity: 0.5;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Loading States */
+.loading-spinner {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }
 
 /* Gradient backgrounds */
 .gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
 }
 
 .gradient-success {
-    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    background: linear-gradient(135deg, hsl(var(--su)) 0%, hsl(var(--a)) 100%);
 }
 
 .gradient-warning {
@@ -34,16 +86,21 @@
 }
 
 /* Card hover effects */
+.card {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
 .card:hover {
     transform: translateY(-2px);
-    transition: transform 0.2s ease-in-out;
 }
 
 /* Form enhancements */
 .form-control input:focus,
 .form-control textarea:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(hsl(var(--p)), 0.1);
 }
 
 /* Status indicators */
@@ -102,20 +159,209 @@
 }
 
 /* Dark mode enhancements */
+[data-theme="dark"] {
+    --p: 214 24% 78%;  /* Primary color for dark mode */
+    --s: 221 39% 60%;  /* Secondary color for dark mode */
+    color-scheme: dark;
+}
+
 [data-theme="dark"] .gradient-primary {
-    background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
+    background: linear-gradient(135deg, #4c5563 0%, #374151 100%);
+    opacity: 0.95;
 }
 
 [data-theme="dark"] .card:hover {
-    background-color: #374151;
-}
-
-/* Synthwave theme */
-[data-theme="synthwave"] .gradient-primary {
-    background: linear-gradient(135deg, #e11d48 0%, #f59e0b 100%);
+    background-color: hsl(var(--b2));
+    border-color: hsl(var(--b3));
 }
 
 /* Animations for theme transitions */
 * {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Button Enhancements */
+.btn {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Status Badge Animations */
+.badge {
+    transition: all 0.2s ease;
+}
+
+/* Copy Button Enhancement */
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+/* Toast Animations */
+.toast-enter {
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-exit {
+    animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stats {
+        flex-direction: column;
+    }
+}
+
+/* Shimmer Effect for Loading */
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(var(--b2));
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--b3));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--bc) / 0.3);
+}
+
+/* Code Block Styling */
+code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+}
+
+pre {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+/* Status Update Transitions */
+#status-container > * {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Fixed Overlay Blur */
+.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+}
+
+/* Icon Hover Effects */
+[data-lucide]:hover {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+/* Fix z-index and overlay issues */
+.card-body {
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure form controls are interactive */
+.form-control {
+    position: relative;
+    z-index: 1;
+}
+
+.form-control input,
+.form-control textarea,
+.form-control select {
+    position: relative;
+    z-index: 2;
+}
+
+/* Ensure the loading overlay is visible when shown */
+#loading-overlay .card {
+    pointer-events: auto;
+}
+
+/* Fix collapse toggle */
+.collapse input[type="checkbox"] {
+    position: relative;
+    z-index: 3;
+}
+
+/* Ensure toast notifications are on top */
+#toast-container {
+    z-index: 9999;
+}
+
+/* Fix potential Alpine.js element issues */
+[x-data], [x-show], [x-ref] {
+    position: relative;
+}
+
+/* Ensure eye button for password toggle is clickable */
+.btn-ghost.btn-xs {
+    z-index: 3;
+}
+
+/* Theme toggle button animation */
+.theme-icon {
+    transition: transform 0.3s ease;
+}
+
+.btn-circle:hover .theme-icon {
+    transform: rotate(180deg);
+}
+
+/* Smooth theme transition */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
 } 

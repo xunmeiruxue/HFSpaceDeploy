@@ -22,6 +22,7 @@ from .utils import _chmod_and_retry
 
 
 def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_name: str, space_port: int, description: str, env_vars: Dict[str, str], private: bool) -> str:
+    deploy_path = deploy_path.strip(".").strip("/")
     api = HfApi(token=hf_token)
     try:
         username = api.whoami().get("name", None)
@@ -41,12 +42,31 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
     tmp = tempfile.mkdtemp(prefix="hf_space_")
     try:
         try:
-            git.Repo.clone_from(
-                git_repo_url, 
-                tmp, 
-                depth=1,
-                multi_options=["--single-branch"]
-            )
+            if not deploy_path:
+                git.Repo.clone_from(
+                    git_repo_url,
+                    tmp,
+                    depth=1,
+                    multi_options=["--single-branch"]
+                )
+            else:
+                repo = git.Repo.clone_from(
+                    git_repo_url, tmp,
+                    depth=1,
+                    no_checkout=True,
+                    filter=["tree:0"],
+                    sparse=True,
+                    multi_options=["--single-branch"],
+                )
+                repo.git.sparse_checkout("init", "--no-cone")
+                repo.git.sparse_checkout("set", "--no-cone", f"/{deploy_path}/**")
+                repo.git.checkout()
+
+                # 平移文件到根目录
+                src = Path(tmp, deploy_path)
+                for item in src.iterdir():
+                    shutil.move(item, tmp)  # 根目录目前是空的
+                shutil.rmtree(src)
         except git.GitCommandError as exc:
             raise RepoCloneError(str(exc)) from exc
 

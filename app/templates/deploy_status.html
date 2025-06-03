@@ -13,34 +13,69 @@
         <p class="text-base-content/70">任务 ID: <code class="bg-base-300 px-2 py-1 rounded">{{ task_id }}</code></p>
     </div>
 
-    <!-- Status Card -->
-    <div class="card bg-base-100 shadow-xl">
+    <!-- Deployment Status Card -->
+    <div class="card bg-base-100 shadow-2xl border border-base-300 fade-in max-w-4xl mx-auto">
         <div class="card-body">
-            <div 
-                id="status-container"
-                hx-get="/web/status/{{ task_id }}"
-                hx-trigger="load, every 2s"
-                hx-swap="innerHTML"
-            >
-                <!-- Initial status will be loaded here -->
-                {% include "status_update.html" %}
+            <h2 class="card-title text-2xl mb-6 flex items-center">
+                <i data-lucide="activity" class="w-6 h-6 mr-2"></i>
+                <span data-i18n="status.title">Deployment Status</span>
+            </h2>
+            
+            <!-- Task Info -->
+            <div class="bg-base-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold" data-i18n="status.taskId">Task ID</span>
+                    <div class="flex items-center gap-2">
+                        <code class="text-xs bg-base-300 px-2 py-1 rounded" id="task-id">{{ task_id }}</code>
+                        <button 
+                            onclick="copyToClipboard('{{ task_id }}')" 
+                            class="btn btn-ghost btn-xs"
+                            data-i18n-title="status.copy"
+                            title="Copy"
+                        >
+                            <i data-lucide="copy" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Container with fixed min-height to prevent jumping -->
+            <div id="status-container" class="min-h-[400px] relative transition-all duration-300">
+                <!-- Initial loading state -->
+                <div class="status-content absolute inset-0 flex items-center justify-center">
+                    <div class="flex flex-col items-center justify-center py-8">
+                        <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+                        <h3 class="text-xl font-semibold mb-2" data-i18n="status.initializing">Initializing...</h3>
+                        <p class="text-base-content/70" data-i18n="status.preparing">Preparing your Space...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Auto-refresh indicator -->
+            <div id="refresh-indicator" class="mt-6 text-center transition-opacity duration-300">
+                <p class="text-xs text-base-content/50">
+                    <i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1 animate-spin"></i>
+                    <span data-i18n="status.autoRefresh">Auto-refresh every 2s</span>
+                </p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="divider mt-8"></div>
+            
+            <div class="flex gap-4 justify-center">
+                <a href="/" class="btn btn-ghost">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="status.newDeploy">New Deploy</span>
+                </a>
+                <button 
+                    onclick="window.location.reload()" 
+                    class="btn btn-ghost"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="status.refresh">Refresh</span>
+                </button>
             </div>
         </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex justify-center space-x-4 mt-8">
-        <a href="/" class="btn btn-outline">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
-            返回首页
-        </a>
-        <button 
-            onclick="window.location.reload()" 
-            class="btn btn-ghost"
-        >
-            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-            刷新页面
-        </button>
     </div>
 
     <!-- Help -->
@@ -57,4 +92,339 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Smooth transitions for status updates */
+    .status-content {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .status-content.fade-out {
+        opacity: 0;
+    }
+    
+    .status-content.fade-in {
+        opacity: 1;
+    }
+    
+    /* Prevent layout shifts */
+    #status-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Progress steps animation */
+    .steps .step {
+        transition: all 0.3s ease;
+    }
+</style>
+
+<script>
+    // Deployment status monitoring
+    const taskId = '{{ task_id }}';
+    let statusInterval = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    let currentStatus = null;
+    let lastUpdateTime = Date.now();
+    
+    // Status templates
+    const statusTemplates = {
+        PENDING: () => `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="loading loading-dots loading-lg text-info mb-4"></div>
+                <h3 class="text-xl font-semibold mb-2">${t('status.queued')}</h3>
+                <p class="text-base-content/70">${t('status.queued.desc')}</p>
+                
+                <div class="mt-6">
+                    <span class="badge badge-info badge-lg">
+                        <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
+                        PENDING
+                    </span>
+                </div>
+            </div>
+        `,
+        
+        IN_PROGRESS: () => `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+                <h3 class="text-xl font-semibold mb-2">${t('status.progress')}</h3>
+                <p class="text-base-content/70">${t('status.progress.desc')}</p>
+                
+                <div class="mt-6">
+                    <span class="badge badge-primary badge-lg">
+                        <i data-lucide="loader-2" class="w-4 h-4 mr-2 loading-spinner"></i>
+                        IN PROGRESS
+                    </span>
+                </div>
+                
+                <div class="mt-8 w-full max-w-md">
+                    <ul class="steps steps-vertical lg:steps-horizontal w-full">
+                        <li class="step step-primary" data-step="1">Initialize</li>
+                        <li class="step step-primary" data-step="2">Clone</li>
+                        <li class="step" data-step="3">Build</li>
+                        <li class="step" data-step="4">Deploy</li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        
+        SUCCESS: (detail) => `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="mb-4">
+                    <div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-12 h-12 text-success"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2 text-success">${t('status.success')}</h3>
+                <p class="text-base-content/70 mb-6">${t('status.success.desc')}</p>
+                
+                <div class="mt-4">
+                    <span class="badge badge-success badge-lg">
+                        <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                        SUCCESS
+                    </span>
+                </div>
+                
+                ${detail && detail.space_url ? `
+                    <div class="mt-8 p-6 bg-success/10 border border-success/20 rounded-lg w-full max-w-lg">
+                        <div class="text-center">
+                            <p class="text-sm text-base-content/70 mb-2">${t('status.url')}</p>
+                            <div class="flex items-center justify-center gap-2 bg-base-100 p-3 rounded-lg">
+                                <a 
+                                    href="${detail.space_url}" 
+                                    target="_blank" 
+                                    class="link link-primary text-lg font-mono truncate max-w-sm"
+                                >
+                                    ${detail.space_url}
+                                </a>
+                                <button 
+                                    onclick="copyToClipboard('${detail.space_url}')" 
+                                    class="btn btn-ghost btn-sm"
+                                    title="${t('status.copy')}"
+                                >
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-center">
+                            <a 
+                                href="${detail.space_url}" 
+                                target="_blank" 
+                                class="btn btn-success"
+                            >
+                                <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
+                                <span>${t('status.visit')}</span>
+                            </a>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `,
+        
+        FAILED: (detail) => `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="mb-4">
+                    <div class="w-20 h-20 bg-error/20 rounded-full flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-12 h-12 text-error"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2 text-error">${t('status.failed')}</h3>
+                <p class="text-base-content/70 mb-6">${t('status.failed.desc')}</p>
+                
+                <div class="mt-4">
+                    <span class="badge badge-error badge-lg">
+                        <i data-lucide="x" class="w-4 h-4 mr-2"></i>
+                        FAILED
+                    </span>
+                </div>
+                
+                ${detail && detail.error ? `
+                    <div class="mt-8 p-6 bg-error/10 border border-error/20 rounded-lg w-full max-w-lg">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-error mt-0.5"></i>
+                            <div class="flex-1">
+                                <p class="font-semibold text-error mb-2">${t('status.error')}</p>
+                                <pre class="text-sm bg-base-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">${detail.error}</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-semibold mb-2">${t('status.troubleshoot')}</h4>
+                            <ul class="text-sm space-y-1 text-base-content/70">
+                                <li>• ${t('req.dockerfile')}</li>
+                                <li>• ${t('req.token')}</li>
+                                <li>• Verify repository URL is accessible</li>
+                                <li>• Check Space name is unique</li>
+                            </ul>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `
+    };
+    
+    // Smooth update function
+    function smoothUpdate(container, newContent) {
+        const currentContent = container.querySelector('.status-content');
+        if (!currentContent) {
+            container.innerHTML = `<div class="status-content">${newContent}</div>`;
+            return;
+        }
+        
+        // Create new content element
+        const newElement = document.createElement('div');
+        newElement.className = 'status-content absolute inset-0 flex items-center justify-center fade-out';
+        newElement.innerHTML = newContent;
+        
+        // Add new content
+        container.appendChild(newElement);
+        
+        // Fade out old content and fade in new content
+        currentContent.classList.add('fade-out');
+        
+        setTimeout(() => {
+            newElement.classList.remove('fade-out');
+            newElement.classList.add('fade-in');
+            
+            setTimeout(() => {
+                currentContent.remove();
+                newElement.classList.remove('absolute');
+            }, 300);
+        }, 50);
+    }
+    
+    // Fetch status from API
+    async function fetchStatus() {
+        try {
+            const response = await fetch(`/deploy/status/${taskId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Only update if status changed or enough time has passed
+            if (data.status !== currentStatus || Date.now() - lastUpdateTime > 10000) {
+                updateStatus(data);
+                currentStatus = data.status;
+                lastUpdateTime = Date.now();
+            }
+            
+            retryCount = 0; // Reset retry count on successful fetch
+            
+        } catch (error) {
+            console.error('Failed to fetch status:', error);
+            retryCount++;
+            
+            if (retryCount >= maxRetries) {
+                stopStatusPolling();
+                showError('Failed to fetch deployment status. Please refresh the page.');
+            }
+        }
+    }
+    
+    // Update status display
+    function updateStatus(data) {
+        const container = document.getElementById('status-container');
+        const template = statusTemplates[data.status];
+        
+        if (template) {
+            smoothUpdate(container, template(data.detail));
+            
+            // Re-initialize icons after transition
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+                
+                // Update translations
+                if (typeof updatePageTranslations !== 'undefined') {
+                    updatePageTranslations();
+                }
+            }, 350);
+            
+            // Stop polling if final state
+            if (data.status === 'SUCCESS' || data.status === 'FAILED') {
+                stopStatusPolling();
+                
+                // Show toast notification
+                if (data.status === 'SUCCESS') {
+                    showToast(t('toast.deploySuccess'), 'success');
+                } else {
+                    showToast(t('toast.deployFailed'), 'error');
+                }
+            }
+        }
+    }
+    
+    // Show error message
+    function showError(message) {
+        const container = document.getElementById('status-container');
+        const errorContent = `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="mb-4">
+                    <div class="w-20 h-20 bg-error/20 rounded-full flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 text-error"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-error">Connection Error</h3>
+                <p class="text-base-content/70">${message}</p>
+            </div>
+        `;
+        
+        smoothUpdate(container, errorContent);
+        
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 350);
+    }
+    
+    // Start status polling
+    function startStatusPolling() {
+        // Initial fetch
+        fetchStatus();
+        
+        // Set up interval
+        statusInterval = setInterval(fetchStatus, 2000);
+    }
+    
+    // Stop status polling
+    function stopStatusPolling() {
+        if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+        }
+        
+        // Fade out refresh indicator
+        const indicator = document.getElementById('refresh-indicator');
+        if (indicator) {
+            indicator.style.opacity = '0';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 300);
+        }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        startStatusPolling();
+        
+        // Re-initialize icons
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 100);
+    });
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        stopStatusPolling();
+    });
+</script>
 {% endblock %} 

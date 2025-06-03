@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}HuggingFace Space 部署器{% endblock %}</title>
+    <title data-i18n="nav.title">HF Space Deployer</title>
     
     <!-- Tailwind CSS + DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -18,6 +18,12 @@
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
+    <!-- Alpine.js for reactive components -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- i18n -->
+    <script src="{{ url_for('static', path='/i18n.js') }}"></script>
+    
     <style>
         .loading-spinner {
             animation: spin 2s linear infinite;
@@ -26,80 +32,105 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-base-100">
     <!-- Navigation -->
-    <div class="navbar bg-primary text-primary-content shadow-lg">
+    <div class="navbar bg-primary text-primary-content shadow-lg sticky top-0 z-50">
         <div class="container mx-auto">
             <div class="flex-1">
                 <a href="/" class="btn btn-ghost text-xl font-bold">
                     <i data-lucide="rocket" class="w-6 h-6 mr-2"></i>
-                    HF Space 部署器
+                    <span data-i18n="nav.title">HF Space Deployer</span>
                 </a>
             </div>
-            <div class="flex-none">
-                <div class="dropdown dropdown-end">
-                    <label tabindex="0" class="btn btn-ghost">
-                        <i data-lucide="sun" class="w-5 h-5"></i>
-                    </label>
-                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li><a onclick="setTheme('light')">🌞 亮色模式</a></li>
-                        <li><a onclick="setTheme('dark')">🌙 暗色模式</a></li>
-                        <li><a onclick="setTheme('synthwave')">🌈 炫彩模式</a></li>
-                    </ul>
-                </div>
+            <div class="flex-none space-x-2">
+                <button 
+                    class="btn btn-ghost btn-circle"
+                    onclick="toggleLanguage()"
+                    data-i18n-title="nav.language"
+                    title="Language"
+                >
+                    <span class="text-lg font-bold lang-icon">EN</span>
+                </button>
+                <button 
+                    class="btn btn-ghost btn-circle"
+                    onclick="toggleTheme()"
+                    data-i18n-title="nav.theme"
+                    title="Toggle Theme"
+                >
+                    <i data-lucide="sun" class="w-5 h-5 theme-icon"></i>
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-base-200 text-base-content rounded mt-16">
-        <div class="flex items-center justify-center space-x-6">
-            <!-- Tech Stack Links -->
-            <div class="flex items-center space-x-4 text-sm">
-                <a href="https://github.com/kfcx/HFSpaceDeploy.git" target="_blank" class="btn btn-ghost btn-sm">
-                    <i data-lucide="github" class="w-5 h-5 mr-2"></i>
-                    GitHub
-                </a>
-                <span class="text-base-content/40">•</span>
-                <a href="https://huggingface.co" target="_blank" class="link link-hover">HuggingFace</a>
-                <span class="text-base-content/40">•</span>
-                <a href="https://fastapi.tiangolo.com" target="_blank" class="link link-hover">FastAPI</a>
-                <span class="text-base-content/40">•</span>
-                <a href="https://htmx.org" target="_blank" class="link link-hover">HTMX</a>
-            </div>
+    <footer class="footer footer-center p-8 bg-base-200 text-base-content mt-16">
+        <div>
+            <p class="font-bold text-lg" data-i18n="footer.title">HF Space Deployer</p>
+            <p class="text-sm opacity-70" data-i18n="footer.desc">Quick deployment tool</p>
         </div>
-        <div class="text-center">
-            <p class="font-bold">HuggingFace Space 一键部署工具</p>
-            <p class="text-sm opacity-70">轻松将您的代码部署到 HuggingFace Spaces</p>
+        <div class="flex items-center space-x-4 text-sm">
+            <a href="https://github.com/kfcx/HFSpaceDeploy.git" target="_blank" class="link link-hover">GitHub</a>
+            <span>•</span>
+            <a href="https://huggingface.co" target="_blank" class="link link-hover">HuggingFace</a>
         </div>
     </footer>
 
     <script>
-        // Theme switcher
+        // Language icon update
+        function updateLanguageIcon() {
+            const langIcon = document.querySelector('.lang-icon');
+            langIcon.textContent = currentLang === 'en' ? 'EN' : '中';
+        }
+        
+        // Override toggleLanguage to update icon
+        if (typeof window.originalToggleLanguage === 'undefined') {
+            window.originalToggleLanguage = toggleLanguage;
+            window.toggleLanguage = function() {
+                window.originalToggleLanguage();
+                updateLanguageIcon();
+            };
+        }
+        
+        // Theme switcher - simplified for light/dark only
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+        
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             
             // Update theme icon
-            const themeIcon = document.querySelector('.dropdown label i');
+            const themeIcon = document.querySelector('.theme-icon');
             if (theme === 'dark') {
                 themeIcon.setAttribute('data-lucide', 'moon');
-            } else if (theme === 'synthwave') {
-                themeIcon.setAttribute('data-lucide', 'palette');
             } else {
                 themeIcon.setAttribute('data-lucide', 'sun');
             }
             lucide.createIcons();
         }
         
-        // Load saved theme
+        // Load saved theme (default to light)
         const savedTheme = localStorage.getItem('theme') || 'light';
         setTheme(savedTheme);
         
@@ -110,38 +141,76 @@
         document.body.addEventListener('htmx:afterRequest', function(evt) {
             // Reinitialize icons after HTMX requests
             lucide.createIcons();
+            // Update translations for new content
+            updatePageTranslations();
         });
         
         // Copy to clipboard function
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
-                // Show success feedback
-                const event = new CustomEvent('show-toast', {
-                    detail: { message: '已复制到剪贴板！', type: 'success' }
-                });
-                document.dispatchEvent(event);
+                showToast(t('toast.copied'), 'success');
+            }).catch(function(err) {
+                showToast(t('toast.copyFailed'), 'error');
             });
         }
         
         // Toast notification system
-        document.addEventListener('show-toast', function(event) {
-            const { message, type } = event.detail;
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `alert alert-${type} fixed top-4 right-4 w-auto z-50 shadow-lg`;
+            toast.className = `alert alert-${type} shadow-lg fade-in min-w-[300px]`;
+            
+            const icons = {
+                'success': 'check-circle',
+                'error': 'x-circle',
+                'warning': 'alert-triangle',
+                'info': 'info'
+            };
+            
             toast.innerHTML = `
-                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <i data-lucide="${icons[type]}" class="w-5 h-5"></i>
                 <span>${message}</span>
             `;
-            document.body.appendChild(toast);
+            
+            toastContainer.appendChild(toast);
+            lucide.createIcons();
             
             // Remove toast after 3 seconds
             setTimeout(() => {
-                toast.remove();
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
-            
-            // Reinitialize icons
-            lucide.createIcons();
+        }
+        
+        // HTMX extensions
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            showToast(t('toast.requestFailed'), 'error');
         });
+        
+        // Global event listener for custom events
+        document.addEventListener('show-toast', function(event) {
+            const { message, type } = event.detail;
+            showToast(message, type);
+        });
+        
+        // Initialize page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            // Update language icon
+            updateLanguageIcon();
+        });
+        
+        // Ensure Alpine.js is loaded before dependent components
+        if (typeof Alpine !== 'undefined') {
+            document.addEventListener('alpine:init', () => {
+                console.log('Alpine.js initialized');
+            });
+        }
     </script>
 </body>
 </html> 

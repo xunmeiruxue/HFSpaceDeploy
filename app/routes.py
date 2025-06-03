@@ -1,5 +1,5 @@
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.gzip import GZipMiddleware
@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory="app/templates")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/web/deploy", response_class=HTMLResponse)
+@app.post("/web/deploy")
 async def web_deploy(
     request: Request,
     hf_token: str = Form(...),
@@ -31,6 +31,7 @@ async def web_deploy(
     space_port: int = Form(7860),
     private: bool = Form(False),
     env_vars_text: str = Form(""),
+    deploy_path: str = Form("/"),
     bg: BackgroundTasks = BackgroundTasks()
 ):
     # Parse environment variables from textarea
@@ -49,41 +50,37 @@ async def web_deploy(
         space_port=space_port,
         private=private,
         env_vars=env_vars,
-        deploy_path="./"
+        deploy_path=deploy_path
     )
     
     task_id = str(uuid.uuid4())
     TaskStore.save(DeployStatus(task_id=task_id, status="PENDING"))
     bg.add_task(_run_task, task_id, deploy_req)
     
-    return templates.TemplateResponse("deploy_status.html", {
-        "request": request, 
-        "task_id": task_id,
-        "status": "PENDING"
-    })
+    # Redirect to status page instead of returning HTML
+    return RedirectResponse(url=f"/deploy/{task_id}", status_code=303)
 
-@app.get("/web/status/{task_id}", response_class=HTMLResponse)
-async def web_status(request: Request, task_id: str):
+@app.get("/deploy/{task_id}", response_class=HTMLResponse)
+async def deploy_status_page(request: Request, task_id: str):
     status = TaskStore.load(task_id)
     if not status:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    return templates.TemplateResponse("status_update.html", {
-        "request": request,
+    return templates.TemplateResponse("deploy_status.html", {
+        "request": request, 
         "task_id": task_id,
-        "status": status.status,
-        "detail": status.detail
+        "status": status.status
     })
 
 # API Routes
-@app.post("/deploy", response_model=DeployStatus, status_code=202, dependencies=[Depends(require_api_key)])
+@app.post("/deploy", response_model=DeployStatus, status_code=202)
 async def deploy(req: DeployRequest, bg: BackgroundTasks):
     task_id = str(uuid.uuid4())
     TaskStore.save(DeployStatus(task_id=task_id, status="PENDING"))
     bg.add_task(_run_task, task_id, req)
     return TaskStore.load(task_id)
 
-@app.get("/deploy/status/{task_id}", response_model=DeployStatus, dependencies=[Depends(require_api_key)])
+@app.get("/deploy/status/{task_id}", response_model=DeployStatus)
 async def status(task_id: str):
     status = TaskStore.load(task_id)
     if not status:

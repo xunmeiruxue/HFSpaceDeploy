@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 class DeployRequest(BaseModel):
     hf_token: str = Field(..., description="HF token with write permission")
     git_repo_url: str = Field(...)
-    deploy_path: str = Field("./")
+    deploy_path: str = Field("/")
     space_name: str = Field(...)
     space_port: int = Field(7860)
     description: str = Field("")
