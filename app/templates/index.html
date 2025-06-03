@@ -68,10 +68,34 @@
 <!-- Deploy Form -->
 <div class="card bg-base-100 shadow-2xl border border-base-300">
     <div class="card-body">
-        <h2 class="card-title text-3xl mb-8 flex items-center">
-            <i data-lucide="settings" class="w-8 h-8 mr-3"></i>
-            <span data-i18n="form.title">Configuration</span>
-        </h2>
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="card-title text-3xl flex items-center">
+                <i data-lucide="settings" class="w-8 h-8 mr-3"></i>
+                <span data-i18n="form.title">Configuration</span>
+            </h2>
+            <div class="flex gap-2">
+                <button 
+                    type="button"
+                    onclick="showImportModal()"
+                    class="btn btn-ghost btn-sm"
+                    data-i18n-title="config.import"
+                    title="Import Configuration"
+                >
+                    <i data-lucide="upload" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="config.import">Import</span>
+                </button>
+                <button 
+                    type="button"
+                    onclick="showExportModal()"
+                    class="btn btn-ghost btn-sm"
+                    data-i18n-title="config.export"
+                    title="Export Configuration"
+                >
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="config.export">Export</span>
+                </button>
+            </div>
+        </div>
         
         <form 
             id="deploy-form"
@@ -209,11 +233,11 @@
                             <input 
                                 type="text" 
                                 name="deploy_path" 
-                                value="./" 
+                                value="/" 
                                 data-i18n-placeholder="form.deployPath.placeholder"
-                                placeholder="./" 
-                                class="input input-bordered w-full"
-                                pattern="^\.?\/?([\w\-\.\/]*)?$"
+                                placeholder="/" 
+                                class="input input-bordered w-full" 
+                                pattern="^\.?\/?([\w\-\.\/]*)?$" 
                             >
                             <label class="label">
                                 <span class="label-text-alt" data-i18n="form.deployPath.hint">Subdirectory to deploy (default: root)</span>
@@ -352,7 +376,294 @@
     </div>
 </div>
 
+<!-- Import Configuration Modal -->
+<dialog id="import-modal" class="modal">
+    <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">
+            <i data-lucide="upload" class="w-5 h-5 inline mr-2"></i>
+            <span data-i18n="config.import.title">Import Configuration</span>
+        </h3>
+        
+        <div class="space-y-4">
+            <div class="alert alert-info">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                <span data-i18n="config.import.info">Paste your configuration JSON or share configuration URL</span>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text" data-i18n="config.import.label">Configuration JSON</span>
+                </label>
+                <textarea 
+                    id="import-config-text"
+                    class="textarea textarea-bordered h-48 font-mono text-sm"
+                    data-i18n-placeholder="config.import.placeholder"
+                    placeholder='{"space_name": "my-app", "git_repo_url": "https://github.com/..."}'
+                ></textarea>
+            </div>
+            
+            <div class="modal-action">
+                <button type="button" onclick="importConfig()" class="btn btn-primary">
+                    <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="config.import.apply">Apply Configuration</span>
+                </button>
+                <form method="dialog">
+                    <button class="btn btn-ghost" data-i18n="config.cancel">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Export Configuration Modal -->
+<dialog id="export-modal" class="modal">
+    <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">
+            <i data-lucide="download" class="w-5 h-5 inline mr-2"></i>
+            <span data-i18n="config.export.title">Export Configuration</span>
+        </h3>
+        
+        <div class="space-y-4">
+            <div class="alert alert-success">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span data-i18n="config.export.info">Configuration exported successfully</span>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text" data-i18n="config.export.label">Configuration JSON</span>
+                    <button 
+                        type="button"
+                        onclick="copyExportConfig()"
+                        class="btn btn-ghost btn-xs"
+                    >
+                        <i data-lucide="copy" class="w-4 h-4 mr-1"></i>
+                        <span data-i18n="config.copy">Copy</span>
+                    </button>
+                </label>
+                <textarea 
+                    id="export-config-text"
+                    class="textarea textarea-bordered h-48 font-mono text-sm"
+                    readonly
+                ></textarea>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text" data-i18n="config.export.url">Share URL</span>
+                    <button 
+                        type="button"
+                        onclick="copyShareUrl()"
+                        class="btn btn-ghost btn-xs"
+                    >
+                        <i data-lucide="copy" class="w-4 h-4 mr-1"></i>
+                        <span data-i18n="config.copy">Copy</span>
+                    </button>
+                </label>
+                <input 
+                    id="share-url"
+                    type="text"
+                    class="input input-bordered font-mono text-sm"
+                    readonly
+                >
+            </div>
+            
+            <div class="modal-action">
+                <button type="button" onclick="saveConfigAsFile()" class="btn btn-primary">
+                    <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                    <span data-i18n="config.export.save">Save as File</span>
+                </button>
+                <form method="dialog">
+                    <button class="btn btn-ghost" data-i18n="config.close">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
 <script>
+    // Configuration management
+    const CONFIG_FIELDS = {
+        git_repo_url: 'input[name="git_repo_url"]',
+        space_name: 'input[name="space_name"]',
+        description: 'textarea[name="description"]',
+        deploy_path: 'input[name="deploy_path"]',
+        space_port: 'input[name="space_port"]',
+        private: 'input[name="private"]',
+        env_vars_text: 'textarea[name="env_vars_text"]'
+    };
+    
+    // Check for config in URL on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        checkUrlConfig();
+        
+        // Re-initialize icons after DOM updates
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 100);
+    });
+    
+    // Check URL for config parameter
+    function checkUrlConfig() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const configParam = urlParams.get('config');
+        
+        if (configParam) {
+            try {
+                // Decode base64 and parse JSON
+                const configJson = atob(configParam);
+                const config = JSON.parse(configJson);
+                applyConfiguration(config);
+                
+                // Show success toast
+                showToast(t('config.import.success'), 'success');
+                
+                // Remove config from URL to clean up
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (error) {
+                console.error('Failed to load config from URL:', error);
+                showToast(t('config.import.error'), 'error');
+            }
+        }
+    }
+    
+    // Show import modal
+    function showImportModal() {
+        document.getElementById('import-modal').showModal();
+        // Re-initialize icons in modal
+        setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Show export modal
+    function showExportModal() {
+        const config = extractConfiguration();
+        const configJson = JSON.stringify(config, null, 2);
+        
+        // Set export text
+        document.getElementById('export-config-text').value = configJson;
+        
+        // Generate share URL
+        const encoded = btoa(configJson);
+        const shareUrl = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
+        document.getElementById('share-url').value = shareUrl;
+        
+        document.getElementById('export-modal').showModal();
+        // Re-initialize icons in modal
+        setTimeout(() => lucide.createIcons(), 100);
+    }
+    
+    // Extract current form configuration
+    function extractConfiguration() {
+        const config = {};
+        
+        for (const [field, selector] of Object.entries(CONFIG_FIELDS)) {
+            const element = document.querySelector(selector);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    config[field] = element.checked;
+                } else {
+                    config[field] = element.value;
+                }
+            }
+        }
+        
+        return config;
+    }
+    
+    // Apply configuration to form
+    function applyConfiguration(config) {
+        for (const [field, selector] of Object.entries(CONFIG_FIELDS)) {
+            const element = document.querySelector(selector);
+            if (element && config.hasOwnProperty(field)) {
+                if (element.type === 'checkbox') {
+                    element.checked = config[field];
+                } else {
+                    element.value = config[field];
+                }
+                
+                // Trigger change event for any listeners
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+        
+        // Expand advanced settings if any advanced field is set
+        if (config.deploy_path || config.space_port !== 7860 || config.private || config.env_vars_text) {
+            const advancedToggle = document.querySelector('.collapse input[type="checkbox"]');
+            if (advancedToggle) {
+                advancedToggle.checked = true;
+            }
+        }
+    }
+    
+    // Import configuration from modal
+    function importConfig() {
+        const configText = document.getElementById('import-config-text').value.trim();
+        
+        if (!configText) {
+            showToast(t('config.import.empty'), 'warning');
+            return;
+        }
+        
+        try {
+            const config = JSON.parse(configText);
+            applyConfiguration(config);
+            
+            // Close modal
+            document.getElementById('import-modal').close();
+            
+            // Show success toast
+            showToast(t('config.import.success'), 'success');
+        } catch (error) {
+            console.error('Invalid configuration JSON:', error);
+            showToast(t('config.import.invalid'), 'error');
+        }
+    }
+    
+    // Copy export configuration
+    function copyExportConfig() {
+        const configText = document.getElementById('export-config-text');
+        configText.select();
+        navigator.clipboard.writeText(configText.value).then(() => {
+            showToast(t('config.copied'), 'success');
+        });
+    }
+    
+    // Copy share URL
+    function copyShareUrl() {
+        const shareUrl = document.getElementById('share-url');
+        shareUrl.select();
+        navigator.clipboard.writeText(shareUrl.value).then(() => {
+            showToast(t('config.url.copied'), 'success');
+        });
+    }
+    
+    // Save configuration as file
+    function saveConfigAsFile() {
+        const config = extractConfiguration();
+        const configJson = JSON.stringify(config, null, 2);
+        
+        // Create blob and download
+        const blob = new Blob([configJson], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hf-deploy-config-${config.space_name || 'config'}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast(t('config.export.saved'), 'success');
+    }
+    
     // Form validation and enhancement
     document.getElementById('deploy-form').addEventListener('submit', function(e) {
         const submitBtn = e.target.querySelector('button[type="submit"]');

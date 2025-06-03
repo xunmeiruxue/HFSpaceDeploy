@@ -1,5 +1,100 @@
 /* Custom styles for HuggingFace Space Deployer */
 
+/* Light Theme Configuration - CMYK Theme */
+[data-theme="light"] {
+    /* Color scheme */
+    color-scheme: light;
+    
+    /* Base colors */
+    --b1: 100% 0 0;                /* base-100 - Pure white */
+    --b2: 95% 0 0;                 /* base-200 */
+    --b3: 90% 0 0;                 /* base-300 */
+    --bc: 20% 0 0;                 /* base-content - Dark gray */
+    
+    /* Brand colors */
+    --p: 71.772% 0.133 239.443;    /* primary - Blue */
+    --pc: 14.354% 0.026 239.443;   /* primary-content */
+    --s: 64.476% 0.202 359.339;    /* secondary - Red/Pink */
+    --sc: 12.895% 0.04 359.339;    /* secondary-content */
+    --a: 94.228% 0.189 105.306;    /* accent - Yellow-green */
+    --ac: 18.845% 0.037 105.306;   /* accent-content */
+    --n: 21.778% 0 0;              /* neutral - Dark gray */
+    --nc: 84.355% 0 0;             /* neutral-content */
+    
+    /* State colors */
+    --in: 68.475% 0.094 217.284;   /* info - Light blue */
+    --inc: 13.695% 0.018 217.284;  /* info-content */
+    --su: 46.949% 0.162 321.406;   /* success - Magenta */
+    --suc: 89.389% 0.032 321.406;  /* success-content */
+    --wa: 71.236% 0.159 52.023;    /* warning - Orange */
+    --wac: 14.247% 0.031 52.023;   /* warning-content */
+    --er: 62.013% 0.208 28.717;    /* error - Red-orange */
+    --erc: 12.402% 0.041 28.717;   /* error-content */
+    
+    /* Design tokens */
+    --rounded-box: 1rem;            /* Larger border radius */
+    --rounded-btn: 1rem;            /* Rounded buttons */
+    --rounded-badge: 0.5rem;        /* Medium rounded badges */
+    --border-btn: 1px;              /* Border width */
+    
+    /* Effects */
+    --animation-btn: 0.25s;
+    --animation-input: 0.2s;
+    --btn-focus-scale: 0.98;
+    --tab-radius: 1rem;
+}
+
+/* Dark Theme Configuration - Aqua Theme */
+[data-theme="dark"] {
+    /* Color scheme */
+    color-scheme: dark;
+    
+    /* Base colors */
+    --b1: 37% 0.146 265.522;       /* base-100 - Deep blue-purple */
+    --b2: 28% 0.091 267.935;       /* base-200 */
+    --b3: 22% 0.091 267.935;       /* base-300 */
+    --bc: 90% 0.058 230.902;       /* base-content - Light cyan */
+    
+    /* Brand colors */
+    --p: 85.661% 0.144 198.645;    /* primary - Cyan */
+    --pc: 40.124% 0.068 197.603;   /* primary-content */
+    --s: 60.682% 0.108 309.782;    /* secondary - Purple */
+    --sc: 96% 0.016 293.756;       /* secondary-content */
+    --a: 93.426% 0.102 94.555;     /* accent - Yellow */
+    --ac: 18.685% 0.02 94.555;     /* accent-content */
+    --n: 27% 0.146 265.522;        /* neutral - Dark blue */
+    --nc: 80% 0.146 265.522;       /* neutral-content */
+    
+    /* State colors */
+    --in: 54.615% 0.215 262.88;    /* info - Blue */
+    --inc: 90.923% 0.043 262.88;   /* info-content */
+    --su: 62.705% 0.169 149.213;   /* success - Green */
+    --suc: 12.541% 0.033 149.213;  /* success-content */
+    --wa: 66.584% 0.157 58.318;    /* warning - Orange */
+    --wac: 27% 0.077 45.635;       /* warning-content */
+    --er: 73.95% 0.19 27.33;       /* error - Red */
+    --erc: 14.79% 0.038 27.33;     /* error-content */
+    
+    /* Design tokens */
+    --rounded-box: 1rem;            /* Larger border radius */
+    --rounded-btn: 1rem;            /* Rounded buttons */
+    --rounded-badge: 0.5rem;        /* Medium rounded badges */
+    --border-btn: 1px;              /* Border width */
+    
+    /* Effects */
+    --animation-btn: 0.25s;
+    --animation-input: 0.2s;
+    --btn-focus-scale: 0.98;
+    --tab-radius: 1rem;
+}
+
+/* Custom theme variables */
+:root {
+    --hover-opacity: 0.08;
+    --focus-opacity: 0.12;
+    --transition-speed: 0.2s;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
@@ -70,19 +165,19 @@
 
 /* Gradient backgrounds */
 .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+    background: linear-gradient(135deg, oklch(var(--p)) 0%, oklch(var(--s)) 100%);
 }
 
 .gradient-success {
-    background: linear-gradient(135deg, hsl(var(--su)) 0%, hsl(var(--a)) 100%);
+    background: linear-gradient(135deg, oklch(var(--su)) 0%, oklch(var(--a)) 100%);
 }
 
 .gradient-warning {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, oklch(var(--wa)) 0%, oklch(var(--wa) / 0.8) 100%);
 }
 
 .gradient-error {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    background: linear-gradient(135deg, oklch(var(--er)) 0%, oklch(var(--er) / 0.8) 100%);
 }
 
 /* Card hover effects */
@@ -90,6 +185,7 @@
     transition: all 0.3s ease;
     position: relative;
     z-index: 1;
+    border-radius: var(--rounded-box);
 }
 
 .card:hover {
@@ -100,18 +196,18 @@
 .form-control input:focus,
 .form-control textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(hsl(var(--p)), 0.1);
+    box-shadow: 0 0 0 3px oklch(var(--p) / 0.1);
 }
 
 /* Status indicators */
 .status-pending {
-    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    background: linear-gradient(90deg, oklch(var(--wa)), oklch(var(--wa) / 0.8));
     background-size: 200% 200%;
     animation: gradient-shift 2s ease-in-out infinite;
 }
 
 .status-in-progress {
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    background: linear-gradient(90deg, oklch(var(--in)), oklch(var(--in) / 0.8));
     background-size: 200% 200%;
     animation: gradient-shift 2s ease-in-out infinite;
 }
@@ -158,21 +254,10 @@
     }
 }
 
-/* Dark mode enhancements */
-[data-theme="dark"] {
-    --p: 214 24% 78%;  /* Primary color for dark mode */
-    --s: 221 39% 60%;  /* Secondary color for dark mode */
-    color-scheme: dark;
-}
-
+/* Remove old dark mode color overrides since we now have proper theme variables */
 [data-theme="dark"] .gradient-primary {
-    background: linear-gradient(135deg, #4c5563 0%, #374151 100%);
-    opacity: 0.95;
-}
-
-[data-theme="dark"] .card:hover {
-    background-color: hsl(var(--b2));
-    border-color: hsl(var(--b3));
+    /* Let it use the theme colors defined above */
+    opacity: 1;
 }
 
 /* Animations for theme transitions */
@@ -186,6 +271,7 @@
     position: relative;
     overflow: hidden;
     z-index: 2;
+    border-radius: var(--rounded-btn);
 }
 
 .btn::before {
@@ -266,16 +352,16 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: hsl(var(--b2));
+    background: oklch(var(--b2));
 }
 
 ::-webkit-scrollbar-thumb {
-    background: hsl(var(--b3));
+    background: oklch(var(--b3));
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--bc) / 0.3);
+    background: oklch(var(--bc) / 0.3);
 }
 
 /* Code Block Styling */
@@ -283,7 +369,7 @@ code {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.875rem;
     padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
+    border-radius: var(--rounded-badge);
 }
 
 pre {
@@ -324,6 +410,7 @@ pre {
 .form-control select {
     position: relative;
     z-index: 2;
+    border-radius: var(--rounded-badge);
 }
 
 /* Ensure the loading overlay is visible when shown */
@@ -364,4 +451,252 @@ pre {
 /* Smooth theme transition */
 html {
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Add enhanced theme transition effects */
+html[data-theme="light"] {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+html[data-theme="dark"] {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+/* Smooth transitions for theme changes */
+html, body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Enhanced button hover states */
+.btn-primary:hover {
+    background-color: oklch(var(--p) / 0.9);
+    border-color: oklch(var(--p) / 0.9);
+}
+
+.btn-secondary:hover {
+    background-color: oklch(var(--s) / 0.9);
+    border-color: oklch(var(--s) / 0.9);
+}
+
+.btn-accent:hover {
+    background-color: oklch(var(--a) / 0.9);
+    border-color: oklch(var(--a) / 0.9);
+}
+
+/* Card enhancements with theme colors */
+.card {
+    background-color: oklch(var(--b1));
+    border: 1px solid oklch(var(--b3) / 0.2);
+}
+
+.card:hover {
+    border-color: oklch(var(--p) / 0.3);
+    box-shadow: 0 4px 12px oklch(var(--bc) / 0.1);
+}
+
+/* Input field enhancements */
+.input, .textarea, .select {
+    background-color: oklch(var(--b1));
+    border-color: oklch(var(--bc) / 0.2);
+    border-radius: var(--rounded-badge);
+}
+
+.input:focus, .textarea:focus, .select:focus {
+    border-color: oklch(var(--p));
+    background-color: oklch(var(--b1));
+}
+
+/* Badge color enhancements */
+.badge-primary {
+    background-color: oklch(var(--p));
+    color: oklch(var(--pc));
+}
+
+.badge-secondary {
+    background-color: oklch(var(--s));
+    color: oklch(var(--sc));
+}
+
+.badge-accent {
+    background-color: oklch(var(--a));
+    color: oklch(var(--ac));
+}
+
+.badge-success {
+    background-color: oklch(var(--su));
+    color: oklch(var(--suc));
+}
+
+.badge-warning {
+    background-color: oklch(var(--wa));
+    color: oklch(var(--wac));
+}
+
+.badge-error {
+    background-color: oklch(var(--er));
+    color: oklch(var(--erc));
+}
+
+.badge-info {
+    background-color: oklch(var(--in));
+    color: oklch(var(--inc));
+}
+
+/* Alert color enhancements */
+.alert-success {
+    background-color: oklch(var(--su) / 0.2);
+    border-color: oklch(var(--su));
+    color: oklch(var(--suc));
+}
+
+.alert-warning {
+    background-color: oklch(var(--wa) / 0.2);
+    border-color: oklch(var(--wa));
+    color: oklch(var(--wac));
+}
+
+.alert-error {
+    background-color: oklch(var(--er) / 0.2);
+    border-color: oklch(var(--er));
+    color: oklch(var(--erc));
+}
+
+.alert-info {
+    background-color: oklch(var(--in) / 0.2);
+    border-color: oklch(var(--in));
+    color: oklch(var(--inc));
+}
+
+/* Navbar enhancement */
+.navbar {
+    background-color: oklch(var(--p));
+    color: oklch(var(--pc));
+}
+
+/* Footer enhancement */
+.footer {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+}
+
+/* Link colors */
+.link {
+    color: oklch(var(--p));
+}
+
+.link:hover {
+    color: oklch(var(--p) / 0.8);
+}
+
+/* Code block colors */
+code {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: var(--rounded-badge);
+}
+
+pre {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+/* Enhanced visual effects for new themes */
+/* CMYK theme light mode special effects */
+[data-theme="light"] .hero {
+    background: linear-gradient(135deg, 
+        oklch(var(--p) / 0.9) 0%, 
+        oklch(var(--s) / 0.9) 50%, 
+        oklch(var(--a) / 0.9) 100%
+    );
+}
+
+/* Aqua theme dark mode special effects */
+[data-theme="dark"] .hero {
+    background: linear-gradient(135deg, 
+        oklch(var(--p) / 0.8) 0%, 
+        oklch(var(--s) / 0.8) 50%, 
+        oklch(var(--a) / 0.8) 100%
+    );
+}
+
+/* Enhanced card styling with new border radius */
+.card {
+    overflow: hidden;
+}
+
+/* Modal and dialog styling */
+.modal-box {
+    border-radius: var(--rounded-box);
+}
+
+/* Toast notifications with new radius */
+.alert {
+    border-radius: var(--rounded-btn);
+}
+
+/* Enhanced button styles for CMYK/Aqua themes */
+[data-theme="light"] .btn-primary {
+    box-shadow: 0 2px 8px oklch(var(--p) / 0.3);
+}
+
+[data-theme="light"] .btn-primary:hover {
+    box-shadow: 0 4px 12px oklch(var(--p) / 0.4);
+}
+
+[data-theme="dark"] .btn-primary {
+    box-shadow: 0 2px 8px oklch(var(--p) / 0.3);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    box-shadow: 0 4px 12px oklch(var(--p) / 0.4);
+}
+
+/* Special glow effects for dark theme */
+[data-theme="dark"] .card:hover {
+    box-shadow: 0 0 20px oklch(var(--p) / 0.2),
+                0 4px 12px oklch(var(--bc) / 0.1);
+}
+
+[data-theme="dark"] .input:focus,
+[data-theme="dark"] .textarea:focus {
+    box-shadow: 0 0 0 3px oklch(var(--p) / 0.2),
+                0 0 20px oklch(var(--p) / 0.1);
+}
+
+/* Enhance badge styling with new themes */
+[data-theme="light"] .badge {
+    border-radius: var(--rounded-badge);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .badge {
+    border-radius: var(--rounded-badge);
+    font-weight: 500;
+}
+
+/* Update divider styling for new themes */
+[data-theme="light"] .divider {
+    color: oklch(var(--bc) / 0.3);
+}
+
+[data-theme="dark"] .divider {
+    color: oklch(var(--bc) / 0.3);
+}
+
+/* Stat component enhancement */
+[data-theme="light"] .stats {
+    border-radius: var(--rounded-box);
+}
+
+[data-theme="dark"] .stats {
+    border-radius: var(--rounded-box);
+    background: oklch(var(--b1) / 0.5);
+    backdrop-filter: blur(10px);
 } 
