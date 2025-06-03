@@ -130,9 +130,9 @@ curl "http://localhost:7860/deploy/status/{task_id}" \
 ### 环境变量
 
 | 变量名 | 描述 | 默认值 | 必需 |
-|-------|------|--------|------|
-| `API_KEY` | API 接口保护密钥 | - | 否 |
-| `REDIS_URL` | Redis 连接 URL | 内存存储 | 否 |
+|-------|------|--------|----|
+| `API_KEY` | API 接口保护密钥 | - | 是  |
+| `REDIS_URL` | Redis 连接 URL | - | 是  |
 
 ### 应用配置
 

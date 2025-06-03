@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}部署状态 - HuggingFace Space 部署器{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold mb-4">
+            <i data-lucide="activity" class="w-8 h-8 inline mr-2"></i>
+            部署状态监控
+        </h1>
+        <p class="text-base-content/70">任务 ID: <code class="bg-base-300 px-2 py-1 rounded">{{ task_id }}</code></p>
+    </div>
+
+    <!-- Status Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div 
+                id="status-container"
+                hx-get="/web/status/{{ task_id }}"
+                hx-trigger="load, every 2s"
+                hx-swap="innerHTML"
+            >
+                <!-- Initial status will be loaded here -->
+                {% include "status_update.html" %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-center space-x-4 mt-8">
+        <a href="/" class="btn btn-outline">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+            返回首页
+        </a>
+        <button 
+            onclick="window.location.reload()" 
+            class="btn btn-ghost"
+        >
+            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+            刷新页面
+        </button>
+    </div>
+
+    <!-- Help -->
+    <div class="alert alert-info mt-8">
+        <i data-lucide="help-circle" class="w-5 h-5"></i>
+        <div>
+            <h3 class="font-bold">关于部署过程</h3>
+            <div class="text-sm mt-2">
+                <p>• <strong>PENDING:</strong> 任务已创建，等待开始处理</p>
+                <p>• <strong>IN_PROGRESS:</strong> 正在克隆代码并部署到 HuggingFace Spaces</p>
+                <p>• <strong>SUCCESS:</strong> 部署成功，您的应用已上线</p>
+                <p>• <strong>FAILED:</strong> 部署失败，请检查错误信息</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
