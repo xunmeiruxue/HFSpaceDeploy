@@ -51,13 +51,13 @@ REDIS_URL=redis://localhost:6379
 python main.py
 ```
 
-应用将在 `http://localhost:8000` 启动。
+应用将在 `http://localhost:7860` 启动。
 
 ## 🖥️ 使用方法
 
 ### Web 界面使用
 
-1. 打开浏览器访问 `http://localhost:8000`
+1. 打开浏览器访问 `http://localhost:7860`
 2. 填写部署表单：
    - **HuggingFace Token**: 在 [HuggingFace Settings](https://huggingface.co/settings/tokens) 创建具有写入权限的 Token
    - **Git 仓库 URL**: 您要部署的代码仓库地址
@@ -72,7 +72,7 @@ python main.py
 #### 创建部署任务
 
 ```bash
-curl -X POST "http://localhost:8000/deploy" \
+curl -X POST "http://localhost:7860/deploy" \
   -H "X-API-Key: your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -91,7 +91,7 @@ curl -X POST "http://localhost:8000/deploy" \
 #### 查询部署状态
 
 ```bash
-curl "http://localhost:8000/deploy/status/{task_id}" \
+curl "http://localhost:7860/deploy/status/{task_id}" \
   -H "X-API-Key: your_api_key"
 ```
 
