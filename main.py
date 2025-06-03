@@ -1,6 +1,17 @@
-from app.router import app
+#!/usr/bin/env python3
+"""
+HuggingFace Space Deployer
+A web application for deploying code to HuggingFace Spaces with one click.
+"""
+
+import uvicorn
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "app.routes:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )

@@ -1,7 +1,8 @@
 from __future__ import annotations
-import shutil, subprocess, tempfile, textwrap, time
+import shutil, tempfile, textwrap, time
 from pathlib import Path
 from typing import Dict
+import git
 from huggingface_hub import HfApi
 from huggingface_hub.errors import HfHubHTTPError
 from .exceptions import (
@@ -17,10 +18,13 @@ __all__ = [
     "SpaceDeployError",
 ]
 
-def deploy_space(*, hf_token: str, git_repo_url: str, space_name: str, space_port: int, description: str, env_vars: Dict[str, str], private: bool) -> str:
+from .utils import _chmod_and_retry
+
+
+def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_name: str, space_port: int, description: str, env_vars: Dict[str, str], private: bool) -> str:
     api = HfApi(token=hf_token)
     try:
-        username = api.whoami()
+        username = api.whoami().get("name", None)
         repo_id = f"{username}/{space_name}"
         api.create_repo(
             repo_id=repo_id,
@@ -29,24 +33,35 @@ def deploy_space(*, hf_token: str, git_repo_url: str, space_name: str, space_por
             private=private,
             # space_variables=[{}],
             space_secrets=[{"key": k, "value": v} for k, v in env_vars.items()],
-            exist_ok=False,
+            exist_ok=True,
         )
     except HfHubHTTPError as exc:
         raise SpaceCreationError(exc) from exc
 
     tmp = tempfile.mkdtemp(prefix="hf_space_")
     try:
-        res = subprocess.run(["git", "clone", "--depth", "1", git_repo_url, tmp], capture_output=True, text=True)
-        if res.returncode:
-            raise RepoCloneError(res.stderr)
-        Path(tmp, ".git").with_suffix("").unlink(missing_ok=True)
+        try:
+            git.Repo.clone_from(
+                git_repo_url, 
+                tmp, 
+                depth=1,
+                multi_options=["--single-branch"]
+            )
+        except git.GitCommandError as exc:
+            raise RepoCloneError(str(exc)) from exc
+
+        git_dir = Path(tmp, ".git")
+        if git_dir.exists() and git_dir.is_dir():
+            shutil.rmtree(git_dir, onerror=_chmod_and_retry)
+
         if not Path(tmp, "Dockerfile").exists():
             raise DockerfileMissingError()
+
         readme = Path(tmp, "README.md")
         header = textwrap.dedent(
             f"""---\ntitle: \"{space_name}\"\nemoji: \"🚀\"\ncolorFrom: blue\ncolorTo: green\nsdk: docker\napp_port: {space_port}\n---\n"""
         )
-        readme.write_text(f"{header}\n{description}\n")
+        readme.write_text(f"{header}\n{description}\n", encoding="utf-8")
         api.upload_folder(folder_path=tmp, repo_id=repo_id, repo_type="space", ignore_patterns=[".git"])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -56,7 +71,7 @@ def deploy_space(*, hf_token: str, git_repo_url: str, space_name: str, space_por
         stage = api.get_space_runtime(repo_id).stage
         if stage == "RUNNING":
             return f"https://huggingface.co/spaces/{repo_id}"
-        if stage == "ERROR":
+        if stage == "BUILD_ERROR":
             raise SpaceDeployError("Space failed during build/runtime")
         time.sleep(5)
     raise SpaceBuildTimeoutError()

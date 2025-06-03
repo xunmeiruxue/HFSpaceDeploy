@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional
+# from huggingface_hub import SpaceStage
 from pydantic import BaseModel, Field
 
 class DeployRequest(BaseModel):
@@ -15,3 +16,4 @@ class DeployStatus(BaseModel):
     task_id: str
     status: str  # PENDING | IN_PROGRESS | SUCCESS | FAILED
     detail: Optional[Any] = None
+
