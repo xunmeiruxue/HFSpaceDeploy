@@ -57,7 +57,7 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
         if not Path(tmp, "Dockerfile").exists():
             raise DockerfileMissingError()
 
-        readme = Path(".", "README.md")
+        readme = Path(tmp, "README.md")
         header = (
             f"---\n"
             f"title: \"{space_name}\"\n"
