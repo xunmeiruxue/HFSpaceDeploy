@@ -173,7 +173,7 @@ curl "http://localhost:8000/deploy/status/{task_id}" \
 
 ## 📄 许可证
 
-MIT License
+GPL-3.0 license
 
 ## 🔗 相关链接
 
