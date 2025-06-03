@@ -33,7 +33,7 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
             private=private,
             # space_variables=[{}],
             space_secrets=[{"key": k, "value": v} for k, v in env_vars.items()],
-            exist_ok=True,
+            exist_ok=False,
         )
     except HfHubHTTPError as exc:
         raise SpaceCreationError(exc) from exc
