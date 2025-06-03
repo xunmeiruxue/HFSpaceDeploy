@@ -60,14 +60,24 @@
 
     <!-- Footer -->
     <footer class="footer footer-center p-10 bg-base-200 text-base-content rounded mt-16">
-        <div class="grid grid-flow-col gap-4">
-            <a href="https://huggingface.co" class="link link-hover">HuggingFace</a>
-            <a href="https://fastapi.tiangolo.com" class="link link-hover">FastAPI</a>
-            <a href="https://htmx.org" class="link link-hover">HTMX</a>
+        <div class="flex items-center justify-center space-x-6">
+            <!-- Tech Stack Links -->
+            <div class="flex items-center space-x-4 text-sm">
+                <a href="https://github.com/kfcx/HFSpaceDeploy.git" target="_blank" class="btn btn-ghost btn-sm">
+                    <i data-lucide="github" class="w-5 h-5 mr-2"></i>
+                    GitHub
+                </a>
+                <span class="text-base-content/40">•</span>
+                <a href="https://huggingface.co" target="_blank" class="link link-hover">HuggingFace</a>
+                <span class="text-base-content/40">•</span>
+                <a href="https://fastapi.tiangolo.com" target="_blank" class="link link-hover">FastAPI</a>
+                <span class="text-base-content/40">•</span>
+                <a href="https://htmx.org" target="_blank" class="link link-hover">HTMX</a>
+            </div>
         </div>
-        <div>
+        <div class="text-center">
             <p class="font-bold">HuggingFace Space 一键部署工具</p>
-            <p>轻松将您的代码部署到 HuggingFace Spaces</p>
+            <p class="text-sm opacity-70">轻松将您的代码部署到 HuggingFace Spaces</p>
         </div>
     </footer>
 
