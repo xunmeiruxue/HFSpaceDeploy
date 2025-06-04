@@ -53,10 +53,11 @@ python main.py
 - 响应式设计，手机也能用
 
 ### 🛠️ 强大的功能
-- **稀疏克隆**：支持部署仓库的子目录
 - **环境变量**：安全管理敏感配置
 - **私有 Space**：支持创建私有应用
 - **错误处理**：友好的错误提示和解决方案
+- **分享配置**：支持一键导入/导出配置，提供更舒适的体验
+- **稀疏克隆**：支持部署仓库的子目录
 
 ### 🔧 开发者友好
 - RESTful API 接口
@@ -94,7 +95,6 @@ my-repo/
 ### 场景 3：使用环境变量
 在环境变量区域添加：
 ```
-API_KEY=sk-xxx
 DATABASE_URL=redis://...
 ```
 
@@ -108,7 +108,6 @@ import requests
 # 创建部署任务
 response = requests.post(
     "http://localhost:7860/deploy",
-    headers={"X-API-Key": "your_api_key"},
     json={
         "hf_token": "hf_...",
         "git_repo_url": "https://github.com/user/repo",
@@ -146,8 +145,8 @@ CMD ["python", "app.py"]
 <summary><b>Q: 怎么获取 HuggingFace Token ？</b></summary>
 					
 A: 如下图点击`获取令牌` -> `Create new token` -> 如图2`复制token`   
-![img](images/img0.png)
-![img.png](images/img2.png)
+![img1](images/img0.png)
+![img2](images/img2.png)
 </details>
 
 <details>
@@ -195,9 +194,6 @@ A: 检查以下几点：
 创建 `.env` 文件：
 
 ```env
-# API 保护（可选）
-API_KEY=your_secret_key
-
 # Redis 配置（必选，用于持久化任务状态）
 REDIS_URL=redis://localhost:6379
 ```
