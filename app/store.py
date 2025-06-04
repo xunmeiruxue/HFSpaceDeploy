@@ -32,7 +32,7 @@ class TaskStore:
                 "detail": json.dumps(status.detail) if status.detail else "",
             },
         )
-        redis_client.expire(cls._key(status.task_id), 7 * 24 * 3600)
+        redis_client.expire(cls._key(status.task_id), 24 * 3600)
 
     @classmethod
     def load(cls, task_id: str) -> Optional[DeployStatus]:
