@@ -26,8 +26,8 @@
 
 ```bash
 # 克隆并启动
-git clone https://github.com/your-repo/huggingface-space-deployer.git
-cd huggingface-space-deployer
+git clone https://github.com/kfcx/HFSpaceDeploy.git
+cd HFSpaceDeploy
 pip install -r requirements.txt
 python main.py
 ```

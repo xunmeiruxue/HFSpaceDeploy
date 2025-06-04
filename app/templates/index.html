@@ -126,18 +126,32 @@
                                 name="hf_token" 
                                 data-i18n-placeholder="form.token.placeholder"
                                 placeholder="hf_..." 
-                                class="input input-bordered input-primary w-full pr-12" 
+                                class="input input-bordered input-primary w-full pr-24" 
                                 required
                                 x-ref="tokenInput"
                             >
-                            <button 
-                                type="button"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-xs p-1"
-                                @click="$refs.tokenInput.type = $refs.tokenInput.type === 'password' ? 'text' : 'password'"
-                                style="z-index: 10;"
-                            >
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1" style="z-index: 10;">
+                                <button 
+                                    type="button"
+                                    class="btn btn-ghost btn-xs p-1"
+                                    @click="$refs.tokenInput.type = $refs.tokenInput.type === 'password' ? 'text' : 'password'"
+                                    data-i18n-title="form.token.toggle"
+                                    title="Toggle visibility"
+                                >
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                                <button 
+                                    type="button"
+                                    class="btn btn-ghost btn-xs p-1"
+                                    onclick="clearCachedToken()"
+                                    data-i18n-title="form.token.clear"
+                                    title="Clear cached token"
+                                    id="clear-token-btn"
+                                    style="display: none;"
+                                >
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                         <label class="label">
                             <span class="label-text-alt text-warning">
@@ -488,6 +502,103 @@
 </dialog>
 
 <script>
+    // Token cache management
+    const TOKEN_CACHE_KEY = 'hf_deploy_token';
+    
+    // Load cached token on page load
+    function loadCachedToken() {
+        try {
+            const cachedToken = localStorage.getItem(TOKEN_CACHE_KEY);
+            if (cachedToken) {
+                const tokenInput = document.querySelector('input[name="hf_token"]');
+                if (tokenInput) {
+                    tokenInput.value = cachedToken;
+                    // Show clear button
+                    const clearBtn = document.getElementById('clear-token-btn');
+                    if (clearBtn) {
+                        clearBtn.style.display = 'block';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading cached token:', error);
+        }
+    }
+    
+    // Save token to cache
+    function saveTokenToCache(token) {
+        try {
+            if (token && token.startsWith('hf_')) {
+                localStorage.setItem(TOKEN_CACHE_KEY, token);
+            }
+        } catch (error) {
+            console.error('Error saving token to cache:', error);
+        }
+    }
+    
+    // Clear cached token
+    function clearCachedToken() {
+        try {
+            localStorage.removeItem(TOKEN_CACHE_KEY);
+            const tokenInput = document.querySelector('input[name="hf_token"]');
+            if (tokenInput) {
+                tokenInput.value = '';
+                tokenInput.focus();
+            }
+            // Hide clear button
+            const clearBtn = document.getElementById('clear-token-btn');
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+            }
+            showToast(t('form.token.cleared') || 'Token cache cleared', 'success');
+        } catch (error) {
+            console.error('Error clearing cached token:', error);
+        }
+    }
+    
+    // Monitor token input changes
+    function initTokenCacheHandler() {
+        const tokenInput = document.querySelector('input[name="hf_token"]');
+        if (tokenInput) {
+            let saveTimeout;
+            
+            // Show/hide clear button and auto-save token
+            tokenInput.addEventListener('input', function() {
+                const clearBtn = document.getElementById('clear-token-btn');
+                if (clearBtn) {
+                    clearBtn.style.display = this.value ? 'block' : 'none';
+                }
+                
+                // Clear previous timeout
+                if (saveTimeout) {
+                    clearTimeout(saveTimeout);
+                }
+                
+                // Auto-save valid token with debounce (500ms delay)
+                const token = this.value.trim();
+                if (token && token.startsWith('hf_')) {
+                    saveTimeout = setTimeout(() => {
+                        saveTokenToCache(token);
+                        // Optional: show a subtle indicator that token was saved
+                        const originalBorder = this.style.borderColor;
+                        this.style.borderColor = 'var(--success)';
+                        setTimeout(() => {
+                            this.style.borderColor = originalBorder;
+                        }, 1000);
+                    }, 500);
+                }
+            });
+            
+            // Also save on blur (when user leaves the field)
+            tokenInput.addEventListener('blur', function() {
+                const token = this.value.trim();
+                if (token && token.startsWith('hf_')) {
+                    saveTokenToCache(token);
+                }
+            });
+        }
+    }
+    
     // Configuration management
     const CONFIG_FIELDS = {
         git_repo_url: 'input[name="git_repo_url"]',
@@ -502,6 +613,10 @@
     // Check for config in URL on page load
     document.addEventListener('DOMContentLoaded', function() {
         checkUrlConfig();
+        
+        // Load cached token
+        loadCachedToken();
+        initTokenCacheHandler();
         
         // Re-initialize icons after DOM updates
         setTimeout(() => {
