@@ -101,9 +101,12 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
     deadline = time.time() + 15 * 60
     while time.time() < deadline:
         stage = api.get_space_runtime(repo_id).stage
+        print(stage)
         if stage == "RUNNING":
             return f"https://huggingface.co/spaces/{repo_id}"
-        if stage == "BUILD_ERROR":
-            raise SpaceDeployError("Space failed during build/runtime")
+        if stage in ("BUILD_ERROR", "CONFIG_ERROR", "RUNTIME_ERROR",):
+            raise SpaceDeployError("Space failed during config/build/runtime")
+        if stage in ("NO_APP_FILE", "STOPPED", "PAUSED", "DELETING", ):
+            raise SpaceDeployError("Space is currently unavailable")
         time.sleep(5)
     raise SpaceBuildTimeoutError()
