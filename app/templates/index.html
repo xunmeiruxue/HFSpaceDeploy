@@ -626,13 +626,21 @@
         }, 100);
     });
     
+    // Listen for hash changes (e.g., when user navigates to a URL with config)
+    window.addEventListener('hashchange', function() {
+        checkUrlConfig();
+    });
+    
     // Check URL for config parameter
     function checkUrlConfig() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const configParam = urlParams.get('config');
+        // Check fragment instead of query parameters
+        const hash = window.location.hash;
         
-        if (configParam) {
+        if (hash && hash.startsWith('#config=')) {
             try {
+                // Extract config from fragment
+                const configParam = hash.substring(8); // Remove '#config='
+                
                 // Decode base64 and parse JSON
                 const configJson = atob(configParam);
                 const config = JSON.parse(configJson);
@@ -665,9 +673,9 @@
         // Set export text
         document.getElementById('export-config-text').value = configJson;
         
-        // Generate share URL
+        // Generate share URL using fragment instead of query parameter
         const encoded = btoa(configJson);
-        const shareUrl = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
+        const shareUrl = `${window.location.origin}${window.location.pathname}#config=${encoded}`;
         document.getElementById('share-url').value = shareUrl;
         
         document.getElementById('export-modal').showModal();
