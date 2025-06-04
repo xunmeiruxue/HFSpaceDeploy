@@ -569,6 +569,41 @@ html, body {
     color: oklch(var(--inc));
 }
 
+/* Light theme alert text color fixes for better readability */
+[data-theme="light"] .alert-success {
+    background-color: oklch(var(--su) / 0.15);
+    border-color: oklch(var(--su) / 0.5);
+    color: oklch(25% 0.162 321.406);  /* Darker text for better contrast */
+}
+
+[data-theme="light"] .alert-warning {
+    background-color: oklch(var(--wa) / 0.15);
+    border-color: oklch(var(--wa) / 0.5);
+    color: oklch(25% 0.159 52.023);   /* Darker text for better contrast */
+}
+
+[data-theme="light"] .alert-error {
+    background-color: oklch(var(--er) / 0.15);
+    border-color: oklch(var(--er) / 0.5);
+    color: oklch(25% 0.208 28.717);   /* Darker text for better contrast */
+}
+
+[data-theme="light"] .alert-info {
+    background-color: oklch(var(--in) / 0.15);
+    border-color: oklch(var(--in) / 0.5);
+    color: oklch(25% 0.094 217.284);  /* Darker text for better contrast */
+}
+
+/* Alert icon styling */
+.alert > :first-child {
+    flex-shrink: 0;
+}
+
+/* Ensure alert text is readable */
+.alert {
+    font-weight: 500;
+}
+
 /* Navbar enhancement */
 .navbar {
     background-color: oklch(var(--p));
