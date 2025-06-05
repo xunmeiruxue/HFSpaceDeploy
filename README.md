@@ -197,7 +197,7 @@ A: 检查以下几点：
 创建 `.env` 文件：
 
 ```env
-# Redis 配置（必选，用于持久化任务状态）
+# Redis 配置（可选，用于持久化任务状态）
 REDIS_URL=redis://localhost:6379
 ```
 
