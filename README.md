@@ -244,6 +244,6 @@ uvicorn main:app --reload --port 7860
 
 <p align="center">
   <a href="https://huggingface.co/spaces">了解 HF Spaces</a> •
-  <a href="https://github.com/your-repo/huggingface-space-deployer/issues">报告问题</a> •
+  <a href="https://github.com/kfcx/huggingface-space-deployer/issues">报告问题</a> •
   <a href="FRONTEND_GUIDE.md">前端文档</a>
 </p>
