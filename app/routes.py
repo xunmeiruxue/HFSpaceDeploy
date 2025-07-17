@@ -17,6 +17,17 @@ app.add_middleware(GZipMiddleware)
 templates = Jinja2Templates(directory="app/templates")
 
 
+def _parse_vars_from_text(text: str) -> dict:
+    """Helper to parse key-value pairs from a multiline string."""
+    variables = {}
+    if text and text.strip():
+        for line in text.strip().split('\n'):
+            if '=' in line:
+                key, value = line.split('=', 1)
+                variables[key.strip()] = value.strip()
+    return variables
+
+
 # Web Interface Routes
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -32,17 +43,15 @@ async def web_deploy(
         description: str = Form(""),
         space_port: int = Form(7860),
         private: bool = Form(False),
-        env_vars_text: str = Form(""),
+        # 修改：添加 space_variables_text 并重命名 env_vars_text
+        space_variables_text: str = Form(""),
+        space_secrets_text: str = Form(""),
         deploy_path: str = Form("/"),
         bg: BackgroundTasks = BackgroundTasks()
 ):
-    # Parse environment variables from textarea
-    env_vars = {}
-    if env_vars_text.strip():
-        for line in env_vars_text.strip().split('\n'):
-            if '=' in line:
-                key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
+    # 修改：分别解析公开变量和机密
+    space_variables = _parse_vars_from_text(space_variables_text)
+    space_secrets = _parse_vars_from_text(space_secrets_text)
 
     deploy_req = DeployRequest(
         hf_token=hf_token,
@@ -51,7 +60,9 @@ async def web_deploy(
         description=description,
         space_port=space_port,
         private=private,
-        env_vars=env_vars,
+        # 修改：传递两种类型的变量
+        space_variables=space_variables,
+        space_secrets=space_secrets,
         deploy_path=deploy_path
     )
 
@@ -59,7 +70,6 @@ async def web_deploy(
     TaskStore.save(DeployStatus(task_id=task_id, status="PENDING"))
     bg.add_task(_run_task, task_id, deploy_req)
 
-    # Redirect to status page instead of returning HTML
     return RedirectResponse(url=f"/deploy/{task_id}", status_code=303)
 
 
@@ -81,6 +91,7 @@ async def deploy_status_page(request: Request, task_id: str):
 async def deploy(req: DeployRequest, bg: BackgroundTasks):
     task_id = str(uuid.uuid4())
     TaskStore.save(DeployStatus(task_id=task_id, status="PENDING"))
+    # 注意：这里的 req 会自动根据更新后的 DeployRequest 模型进行验证
     bg.add_task(_run_task, task_id, req)
     return TaskStore.load(task_id)
 
@@ -98,6 +109,7 @@ async def status(task_id: str):
 def _run_task(task_id: str, req: DeployRequest):
     TaskStore.save(DeployStatus(task_id=task_id, status="IN_PROGRESS"))
     try:
+        # 修改：将 req.dict() 传递给 deploy_space
         url = deploy_space(**req.dict())
         TaskStore.save(DeployStatus(task_id=task_id, status="SUCCESS", detail={"space_url": url}))
     except SpaceDeployError as exc:

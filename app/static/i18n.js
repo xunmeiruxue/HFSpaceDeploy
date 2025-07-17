@@ -45,9 +45,15 @@ const translations = {
         'form.deployPath.hint': 'Subdirectory to deploy (default: root)',
         'form.port': 'Port',
         'form.private': 'Private Space',
-        'form.env': 'Environment Variables',
-        'form.env.placeholder': 'KEY1=value\nKEY2=value',
-        'form.env.hint': 'One per line',
+        // MODIFICATION START: New and updated translation keys
+        'form.env.title': 'Environment Variables',
+        'form.variables': 'Public Variables',
+        'form.variables.placeholder': 'KEY=value\nDEBUG=True',
+        'form.variables.hint': 'Visible to everyone',
+        'form.secrets': 'Secret Variables',
+        'form.secrets.placeholder': 'API_KEY=secret_value\nTOKEN=...',
+        'form.secrets.hint': 'Encrypted and private',
+        // MODIFICATION END
         'form.submit': 'Deploy',
         
         // Requirements
@@ -171,9 +177,15 @@ const translations = {
         'form.deployPath.hint': '要部署的子目录（默认：根目录）',
         'form.port': '端口',
         'form.private': '私有空间',
-        'form.env': '环境变量',
-        'form.env.placeholder': 'KEY1=value\nKEY2=value',
-        'form.env.hint': '每行一个',
+        // MODIFICATION START: New and updated translation keys
+        'form.env.title': '环境变量',
+        'form.variables': '公开变量',
+        'form.variables.placeholder': 'KEY=value\nDEBUG=True',
+        'form.variables.hint': '所有人可见',
+        'form.secrets': '机密变量',
+        'form.secrets.placeholder': 'API_KEY=secret_value\nTOKEN=...',
+        'form.secrets.hint': '加密且私有',
+        // MODIFICATION END
         'form.submit': '部署',
         
         // Requirements
@@ -304,4 +316,4 @@ function updatePageTranslations() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     updatePageTranslations();
-}); 
+});

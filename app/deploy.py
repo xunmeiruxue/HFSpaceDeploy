@@ -21,21 +21,31 @@ __all__ = [
 from .utils import _chmod_and_retry
 
 
-def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_name: str, space_port: int, description: str, env_vars: Dict[str, str], private: bool) -> str:
+# 修改：更新函数签名以接收两种变量
+def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_name: str, space_port: int, description: str, space_variables: Dict[str, str], space_secrets: Dict[str, str], private: bool) -> str:
     deploy_path = deploy_path.strip(".").strip("/")
     api = HfApi(token=hf_token)
     try:
         username = api.whoami().get("name", None)
         repo_id = f"{username}/{space_name}"
+
+        # 1. 创建或获取Space，设置 exist_ok=True 避免已存在时报错
         api.create_repo(
             repo_id=repo_id,
             repo_type="space",
             space_sdk="docker",
             private=private,
-            # space_variables=[{}],
-            space_secrets=[{"key": k, "value": v} for k, v in env_vars.items()],
-            exist_ok=False,
+            exist_ok=True,
         )
+
+        # 2. 添加或更新公开变量
+        for key, value in space_variables.items():
+            api.add_space_variable(repo_id=repo_id, key=key, value=value)
+
+        # 3. 添加或更新机密
+        for key, value in space_secrets.items():
+            api.add_space_secret(repo_id=repo_id, key=key, value=value)
+
     except HfHubHTTPError as exc:
         raise SpaceCreationError(exc) from exc
 
@@ -62,10 +72,9 @@ def deploy_space(*, hf_token: str, git_repo_url: str, deploy_path: str, space_na
                 repo.git.sparse_checkout("set", "--no-cone", f"/{deploy_path}/**")
                 repo.git.checkout()
 
-                # 平移文件到根目录
                 src = Path(tmp, deploy_path)
                 for item in src.iterdir():
-                    shutil.move(item, tmp)  # 根目录目前是空的
+                    shutil.move(str(item), tmp)
                 shutil.rmtree(src)
         except git.GitCommandError as exc:
             raise RepoCloneError(str(exc)) from exc

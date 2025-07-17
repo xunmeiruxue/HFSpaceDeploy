@@ -287,24 +287,56 @@
                             </label>
                         </div>
 
-                        <!-- Environment Variables -->
-                        <div class="form-control lg:col-span-2">
-                            <label class="label">
-                                <span class="label-text font-semibold">
-                                    <i data-lucide="terminal" class="w-4 h-4 inline mr-2"></i>
-                                    <span data-i18n="form.env">Environment Variables</span>
-                                </span>
-                            </label>
-                            <textarea 
-                                name="env_vars_text" 
-                                data-i18n-placeholder="form.env.placeholder"
-                                placeholder="KEY=value" 
-                                class="textarea textarea-bordered h-32 font-mono text-sm"
-                            ></textarea>
-                            <label class="label">
-                                <span class="label-text-alt" data-i18n="form.env.hint">One per line</span>
-                            </label>
+                        <!-- MODIFICATION START: Environment Variables Layout Change -->
+                        <!-- Add a title for the environment variables section -->
+                        <div class="lg:col-span-2 -mb-2">
+                            <h3 class="text-md font-semibold flex items-center text-base-content/80">
+                                <i data-lucide="terminal" class="w-5 h-5 mr-2"></i>
+                                <span data-i18n="form.env.title">Environment Variables</span>
+                            </h3>
                         </div>
+
+                        <!-- This container will span the full width on large screens -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Secrets (now on top) -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <i data-lucide="key-round" class="w-4 h-4 inline mr-2"></i>
+                                        <span data-i18n="form.secrets">Secret Variables</span>
+                                    </span>
+                                </label>
+                                <textarea 
+                                    name="space_secrets_text" 
+                                    data-i18n-placeholder="form.secrets.placeholder"
+                                    placeholder="API_KEY=secret_value" 
+                                    class="textarea textarea-bordered h-32 font-mono text-sm"
+                                ></textarea>
+                                <label class="label">
+                                    <span class="label-text-alt" data-i18n="form.secrets.hint">Encrypted and private</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Public Variables -->
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">
+                                        <i data-lucide="globe" class="w-4 h-4 inline mr-2"></i>
+                                        <span data-i18n="form.variables">Public Variables</span>
+                                    </span>
+                                </label>
+                                <textarea 
+                                    name="space_variables_text" 
+                                    data-i18n-placeholder="form.variables.placeholder"
+                                    placeholder="KEY=value" 
+                                    class="textarea textarea-bordered h-32 font-mono text-sm"
+                                ></textarea>
+                                <label class="label">
+                                    <span class="label-text-alt" data-i18n="form.variables.hint">Visible to everyone</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- MODIFICATION END -->
                     </div>
                 </div>
             </div>
@@ -562,24 +594,20 @@
         if (tokenInput) {
             let saveTimeout;
             
-            // Show/hide clear button and auto-save token
             tokenInput.addEventListener('input', function() {
                 const clearBtn = document.getElementById('clear-token-btn');
                 if (clearBtn) {
                     clearBtn.style.display = this.value ? 'block' : 'none';
                 }
                 
-                // Clear previous timeout
                 if (saveTimeout) {
                     clearTimeout(saveTimeout);
                 }
                 
-                // Auto-save valid token with debounce (500ms delay)
                 const token = this.value.trim();
                 if (token && token.startsWith('hf_')) {
                     saveTimeout = setTimeout(() => {
                         saveTokenToCache(token);
-                        // Optional: show a subtle indicator that token was saved
                         const originalBorder = this.style.borderColor;
                         this.style.borderColor = 'var(--success)';
                         setTimeout(() => {
@@ -589,7 +617,6 @@
                 }
             });
             
-            // Also save on blur (when user leaves the field)
             tokenInput.addEventListener('blur', function() {
                 const token = this.value.trim();
                 if (token && token.startsWith('hf_')) {
@@ -599,7 +626,6 @@
         }
     }
     
-    // Configuration management
     const CONFIG_FIELDS = {
         git_repo_url: 'input[name="git_repo_url"]',
         space_name: 'input[name="space_name"]',
@@ -607,18 +633,14 @@
         deploy_path: 'input[name="deploy_path"]',
         space_port: 'input[name="space_port"]',
         private: 'input[name="private"]',
-        env_vars_text: 'textarea[name="env_vars_text"]'
+        space_variables_text: 'textarea[name="space_variables_text"]',
+        space_secrets_text: 'textarea[name="space_secrets_text"]'
     };
     
-    // Check for config in URL on page load
     document.addEventListener('DOMContentLoaded', function() {
         checkUrlConfig();
-        
-        // Load cached token
         loadCachedToken();
         initTokenCacheHandler();
-        
-        // Re-initialize icons after DOM updates
         setTimeout(() => {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -626,30 +648,19 @@
         }, 100);
     });
     
-    // Listen for hash changes (e.g., when user navigates to a URL with config)
     window.addEventListener('hashchange', function() {
         checkUrlConfig();
     });
     
-    // Check URL for config parameter
     function checkUrlConfig() {
-        // Check fragment instead of query parameters
         const hash = window.location.hash;
-        
         if (hash && hash.startsWith('#config=')) {
             try {
-                // Extract config from fragment
-                const configParam = hash.substring(8); // Remove '#config='
-                
-                // Decode base64 and parse JSON
+                const configParam = hash.substring(8);
                 const configJson = atob(configParam);
                 const config = JSON.parse(configJson);
                 applyConfiguration(config);
-                
-                // Show success toast
                 showToast(t('config.import.success'), 'success');
-                
-                // Remove config from URL to clean up
                 window.history.replaceState({}, document.title, window.location.pathname);
             } catch (error) {
                 console.error('Failed to load config from URL:', error);
@@ -658,35 +669,27 @@
         }
     }
     
-    // Show import modal
     function showImportModal() {
         document.getElementById('import-modal').showModal();
-        // Re-initialize icons in modal
         setTimeout(() => lucide.createIcons(), 100);
     }
     
-    // Show export modal
     function showExportModal() {
         const config = extractConfiguration();
         const configJson = JSON.stringify(config, null, 2);
         
-        // Set export text
         document.getElementById('export-config-text').value = configJson;
         
-        // Generate share URL using fragment instead of query parameter
         const encoded = btoa(configJson);
         const shareUrl = `${window.location.origin}${window.location.pathname}#config=${encoded}`;
         document.getElementById('share-url').value = shareUrl;
         
         document.getElementById('export-modal').showModal();
-        // Re-initialize icons in modal
         setTimeout(() => lucide.createIcons(), 100);
     }
     
-    // Extract current form configuration
     function extractConfiguration() {
         const config = {};
-        
         for (const [field, selector] of Object.entries(CONFIG_FIELDS)) {
             const element = document.querySelector(selector);
             if (element) {
@@ -697,11 +700,9 @@
                 }
             }
         }
-        
         return config;
     }
     
-    // Apply configuration to form
     function applyConfiguration(config) {
         for (const [field, selector] of Object.entries(CONFIG_FIELDS)) {
             const element = document.querySelector(selector);
@@ -711,14 +712,11 @@
                 } else {
                     element.value = config[field];
                 }
-                
-                // Trigger change event for any listeners
                 element.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }
         
-        // Expand advanced settings if any advanced field is set
-        if (config.deploy_path || config.space_port !== 7860 || config.private || config.env_vars_text) {
+        if (config.deploy_path || config.space_port !== 7860 || config.private || config.space_variables_text || config.space_secrets_text) {
             const advancedToggle = document.querySelector('.collapse input[type="checkbox"]');
             if (advancedToggle) {
                 advancedToggle.checked = true;
@@ -726,23 +724,16 @@
         }
     }
     
-    // Import configuration from modal
     function importConfig() {
         const configText = document.getElementById('import-config-text').value.trim();
-        
         if (!configText) {
             showToast(t('config.import.empty'), 'warning');
             return;
         }
-        
         try {
             const config = JSON.parse(configText);
             applyConfiguration(config);
-            
-            // Close modal
             document.getElementById('import-modal').close();
-            
-            // Show success toast
             showToast(t('config.import.success'), 'success');
         } catch (error) {
             console.error('Invalid configuration JSON:', error);
@@ -750,7 +741,6 @@
         }
     }
     
-    // Copy export configuration
     function copyExportConfig() {
         const configText = document.getElementById('export-config-text');
         configText.select();
@@ -759,7 +749,6 @@
         });
     }
     
-    // Copy share URL
     function copyShareUrl() {
         const shareUrl = document.getElementById('share-url');
         shareUrl.select();
@@ -768,12 +757,9 @@
         });
     }
     
-    // Save configuration as file
     function saveConfigAsFile() {
         const config = extractConfiguration();
         const configJson = JSON.stringify(config, null, 2);
-        
-        // Create blob and download
         const blob = new Blob([configJson], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -783,35 +769,25 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
         showToast(t('config.export.saved'), 'success');
     }
     
-    // Form validation and enhancement
     document.getElementById('deploy-form').addEventListener('submit', function(e) {
         const submitBtn = e.target.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
-        
-        // Show loading overlay
         document.getElementById('loading-overlay').style.display = 'flex';
     });
     
-    // Initialize all interactive elements after page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Re-initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
-        
-        // Make sure HTMX is initialized
         if (typeof htmx !== 'undefined') {
             htmx.process(document.body);
         }
-        
-        // Initialize eye toggle button for password visibility
         setTimeout(() => {
             lucide.createIcons();
         }, 100);
     });
 </script>
-{% endblock %} 
+{% endblock %}

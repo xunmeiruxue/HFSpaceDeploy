@@ -1,5 +1,4 @@
 from typing import Any, Dict, Optional
-# from huggingface_hub import SpaceStage
 from pydantic import BaseModel, Field
 
 class DeployRequest(BaseModel):
@@ -9,11 +8,12 @@ class DeployRequest(BaseModel):
     space_name: str = Field(...)
     space_port: int = Field(7860)
     description: str = Field("")
-    env_vars: Dict[str, str] = Field(default_factory=dict)
+    # 修改：将 env_vars 重命名为 space_secrets，并添加 space_variables
+    space_secrets: Dict[str, str] = Field(default_factory=dict, description="Secrets (e.g., API keys)")
+    space_variables: Dict[str, str] = Field(default_factory=dict, description="Public variables")
     private: bool = Field(False)
 
 class DeployStatus(BaseModel):
     task_id: str
     status: str  # PENDING | IN_PROGRESS | SUCCESS | FAILED
     detail: Optional[Any] = None
-
